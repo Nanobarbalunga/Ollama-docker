@@ -1,0 +1,9 @@
+.dist
+/src/__pycache__
+venv/
+ollama/
+*.gguf
+*.ggml
+.idea/
+.vscode
+.code-workspace
