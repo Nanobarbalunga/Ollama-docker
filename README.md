@@ -7,7 +7,7 @@ Assicurati di avere installato :
 
 - Docker > 3.7
 
-#### GPU Support (Optional)
+#### GPU Support NVIDIA (Optional)
 
 Se vuoi usare la gpu per migliorare le prestazioni devi prima installare NVIDIA Container Toolkit:
 
@@ -27,6 +27,17 @@ sudo systemctl restart docker
 docker run --gpus all nvidia/cuda:11.5.2-base-ubuntu20.04 nvidia-smi
 ```
 
+#### GPU Support AMD / ROCm (Optional)
+
+Per usare una GPU AMD con Ollama in Docker devi usare un host Linux, oppure Docker Desktop con backend WSL2 che esponga i device Linux al container.
+
+Prerequisiti:
+
+- driver AMD / stack ROCm funzionante sull'host
+- disponibilita' dei device `/dev/kfd` e `/dev/dri` nel runtime Docker
+
+Nota: questa configurazione non e' pensata per Docker su Windows "puro" senza device Linux esposti al container.
+
 ### Configuration
 
 1. Clone la repository:
@@ -45,12 +56,17 @@ docker run --gpus all nvidia/cuda:11.5.2-base-ubuntu20.04 nvidia-smi
 
 Per cominciare:
 
-Se vui usare la GPU
+Se vuoi usare la GPU NVIDIA
 ```bash
-docker compose -f docker-compose-ollama-gpu.yaml up -d
+docker compose -f docker-compose-ollama-nvidia.yaml up -d
 ```
 
-else
+Se vuoi usare la GPU AMD / ROCm
+```bash
+docker compose -f docker-compose-ollama-amd.yaml up -d
+```
+
+Se vuoi usare solo la CPU
 ```bash
 docker compose up -d
 ```
