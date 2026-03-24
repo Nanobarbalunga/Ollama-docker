@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-    ollama:
+  ollama:
     volumes:
       - ./ollama/ollama:/root/.ollama
     container_name: ollama
@@ -23,7 +23,6 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-
   ollama-webui:
     image: ghcr.io/open-webui/open-webui:latest
     container_name: ollama-webui
