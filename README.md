@@ -3,6 +3,7 @@
 ## Getting Started
 
 ### Prerequisites
+
 Assicurati di avere installato :
 
 - Docker > 3.7
@@ -57,16 +58,19 @@ Nota: questa configurazione non e' pensata per Docker su Windows "puro" senza de
 Per cominciare:
 
 Se vuoi usare la GPU NVIDIA
+
 ```bash
 docker compose -f docker-compose-ollama-nvidia.yaml up -d
 ```
 
 Se vuoi usare la GPU AMD / ROCm
+
 ```bash
 docker compose -f docker-compose-ollama-amd.yaml up -d
 ```
 
 Se vuoi usare solo la CPU
+
 ```bash
 docker compose up -d
 ```
@@ -371,6 +375,108 @@ Seleziona quali GPU ROCr rendere visibili. In genere deve restare coerente con `
 #### `AMD_HSA_OVERRIDE_GFX_VERSION`
 
 Override dell'architettura GPU ROCm. Usalo solo per GPU AMD che ne hanno bisogno e dopo aver verificato il valore corretto per il tuo hardware.
+
+---
+
+# Installazione di un modello da Ollama (es. qwen2.5-coder:1.5b)
+
+Per installare un modello specifico con Ollama, puoi eseguire i seguenti passaggi:
+
+1. **Scarica il Modello**:
+   Assicurati di avere accesso al modello desiderato. Può essere disponibile su repository pubblici o da fornitori autorizzati.
+
+2. **Carica il Modello**:
+   Utilizza lo script Ollama per caricare il modello sul tuo sistema. Questo in genere implica la copia del file di modello nella directory corretta (`OLLAMA_MODELS`).
+
+3. **Configura il Modello**:
+   Modifica eventuali configurazioni specifiche per il modello, come il suo nome o versione.
+
+4. **Avvia Ollama**:
+   Esegui l'immagine Docker e assicurati che il modello sia caricato correttamente. Puoi controllare lo stato del caricamento nel log del container.
+
+5. **Verifica la Configurazione**:
+   Verifica che il modello sia accessibile e funzioni correttamente attraverso l'API di Ollama o l'interfaccia web di Open WebUI.
+
+| Modello | Caso d'uso |
+|:-------|:---|
+| qwen2.5-coder:1.5b | Autocomplete e sviluppo codice |
+| qwen2.5:3b | Chat base |
+| qwen2.5:7b | Chat con contesti maggiori |
+| qwen3.5:4b | Chat recente e moderno |
+
+### Configurazione di contine.dev come estensione di VS Code
+
+1. **Installazione dell'estensione**:
+   Apri Visual Studio Code, vai a "Extensions" (Estensioni) dalla scheda lato sinistro o usa il shortcut `Ctrl+Shift+X`. Cerca "contine.dev" e installa l'estensione.
+
+2. **Configurazione locale**:
+  Nella configurazione di contine.dev:
+
+  ```js
+  {
+   "models": [
+      {
+         "title": "Qwen Coder Chat",
+         "provider": "ollama",
+         "model": "qwen2.5-coder:7b",
+         "apiBase": "http://localhost:7869"
+      },
+      {
+         "title": "Qwen3 Coder Chat",
+         "provider": "ollama",
+         "model": "qwen3.5:4b-q4_K_M",
+         "apiBase": "http://localhost:7869"
+      }
+   ],
+   "tabAutocompleteModel": {
+      "title": "Qwen Coder Autocomplete",
+      "provider": "ollama",
+      "model": "qwen2.5-coder:1.5b",
+      "apiBase": "http://localhost:7869"
+   },
+   "embeddingsProvider": {
+      "provider": "ollama",
+      "model": "nomic-embed-text",
+      "apiBase": "http://localhost:7869"
+   },
+   "contextProviders": [
+      {
+         "name": "code",
+         "params": {}
+      },
+      {
+         "name": "docs",
+         "params": {}
+      },
+      {
+         "name": "diff",
+         "params": {}
+      },
+      {
+         "name": "terminal",
+         "params": {}
+      },
+      {
+         "name": "problems",
+         "params": {}
+      }
+   ],
+   "slashCommands": [
+      {
+         "name": "share",
+         "description": "Export the current chat session to markdown"
+      },
+      {
+         "name": "cmd",
+         "description": "Generate a shell command"
+      },
+      {
+         "name": "commit",
+         "description": "Generate a git commit message"
+      }
+   ]
+   }
+  ```
 
 ## License
 
