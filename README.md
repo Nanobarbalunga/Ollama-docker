@@ -73,6 +73,13 @@ docker compose up -d
 
 Per aprire Ollama-webui [http://localhost:8080](http://localhost:8080) nel tuo browser.
 
+In alternativa puoi usare gli script gia' pronti nella root del progetto. Scegli quelli PowerShell se lavori da Windows/PowerShell, oppure quelli Bash se lavori da WSL2 o Linux.
+
+| Ambiente | CPU | NVIDIA | AMD / ROCm | Stop CPU | Stop NVIDIA | Stop AMD / ROCm |
+| --- | --- | --- | --- | --- | --- | --- |
+| PowerShell | `.\start-default.ps1` | `.\start-nvidia.ps1` | `.\start-amd.ps1` | `.\stop-default.ps1` | `.\stop-nvidia.ps1` | `.\stop-amd.ps1` |
+| WSL2 / Linux | `bash start-default.sh` | `bash start-nvidia.sh` | `bash start-amd.sh` | `bash stop-default.sh` | `bash stop-nvidia.sh` | `bash stop-amd.sh` |
+
 ### Model Installation
 
 Per installare un modello da openWebUi andare su Impostazioni=>Modello=>Gestione e selezionare il modello desiderato.
