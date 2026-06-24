@@ -84,6 +84,20 @@ In alternativa puoi usare gli script gia' pronti nella root del progetto. Scegli
 | PowerShell | `.\start-default.ps1` | `.\start-nvidia.ps1` | `.\start-amd.ps1` | `.\stop-default.ps1` | `.\stop-nvidia.ps1` | `.\stop-amd.ps1` |
 | WSL2 / Linux | `bash start-default.sh` | `bash start-nvidia.sh` | `bash start-amd.sh` | `bash stop-default.sh` | `bash stop-nvidia.sh` | `bash stop-amd.sh` |
 
+
+### Use ollama from command line interface
+
+Per entrare nella cli
+
+```bash
+docker exec -it ollama bash 
+```
+
+Per approfondire i comandi segui l'appendice :
+
+- [Appendice A — Guida all'utilizzo della CLI di Ollama](#appendice-e-cli-ollama)
+
+
 ### Model Installation
 
 Per installare un modello da openWebUi andare su Impostazioni=>Modello=>Gestione e selezionare il modello desiderato.
@@ -477,6 +491,286 @@ Per installare un modello specifico con Ollama, puoi eseguire i seguenti passagg
    ]
    }
   ```
+
+<a id="appendice-e-cli-ollama"></a>
+
+## Appendice A - Guida all'utilizzo della CLI di Ollama (Comandi Ollama)
+
+Lista dei comandi principali di ollama cli
+Prima di iniziare assicurarsi che docker compose sia up e quindi entrare dentro il container ollama per eseguire i comandi
+
+### Entrare dentro il container
+
+```bash
+docker exec -it ollama bash 
+```
+
+## A.1 Comandi CLI principali
+
+### Avviare Ollama
+
+```bash
+ollama serve
+```
+
+Avvia il server locale Ollama. È il processo che espone le API HTTP.
+Di base, una volta avviato il docker compose up il servizio ollama sará giá avviato...
+Quindi non serve fare 'ollama serve'
+
+
+---
+
+### Scaricare un modello
+
+```bash
+ollama pull qwen2.5-coder:7b
+```
+
+Scarica il modello nel registro locale di Ollama.
+
+Esempi:
+
+```bash
+ollama pull llama3.2
+ollama pull qwen2.5-coder:7b
+ollama pull nomic-embed-text
+```
+
+---
+
+### Eseguire un modello in chat interattiva
+
+```bash
+ollama run qwen2.5-coder:7b
+```
+
+Apre una sessione interattiva da terminale.
+
+Puoi anche passare direttamente il prompt:
+
+```bash
+ollama run qwen2.5-coder:7b "Spiegami Docker in 5 righe"
+```
+
+---
+
+### Input multilinea
+
+Nella chat interattiva puoi inserire testo multilinea usando triple virgolette:
+
+```text
+>>> """Spiegami questo codice:
+... def hello():
+...     print('ciao')
+... """
+```
+
+---
+
+### Elencare i modelli installati
+
+```bash
+ollama list
+```
+
+oppure:
+
+```bash
+ollama ls
+```
+
+Mostra i modelli presenti localmente.
+
+---
+
+### Mostrare i modelli caricati in memoria
+
+```bash
+ollama ps
+```
+
+Utile per capire quali modelli sono attualmente attivi e stanno usando RAM/VRAM.
+
+---
+
+### Fermare un modello caricato
+
+```bash
+ollama stop qwen2.5-coder:7b
+```
+
+Libera le risorse usate da quel modello.
+
+---
+
+### Mostrare informazioni su un modello
+
+```bash
+ollama show qwen2.5-coder:7b
+```
+
+Può mostrare informazioni su:
+
+- famiglia del modello;
+- template;
+- parametri;
+- licenza;
+- capabilities;
+- quantizzazione.
+
+---
+
+### Copiare o creare alias di un modello
+
+```bash
+ollama cp qwen2.5-coder:7b my-qwen-coder
+```
+
+Utile se vuoi usare un nome più comodo o compatibile con strumenti esterni.
+
+Esempio:
+
+```bash
+ollama cp llama3.2 gpt-3.5-turbo
+```
+
+Questo non trasforma Llama in GPT, crea solo un alias locale.
+
+---
+
+### Rimuovere un modello
+
+```bash
+ollama rm qwen2.5-coder:7b
+```
+
+Elimina il modello dal disco locale.
+
+---
+
+### Creare un modello personalizzato con Modelfile
+
+Crea un file chiamato `Modelfile`:
+
+```text
+FROM qwen2.5-coder:7b
+SYSTEM """
+Sei un assistente tecnico specializzato in Python, Laravel, Vue, Docker e AI.
+Rispondi sempre in italiano.
+"""
+PARAMETER temperature 0.3
+PARAMETER num_ctx 8192
+```
+
+Poi crea il modello:
+
+```bash
+ollama create qwen2.5-coder-it-8k -f Modelfile
+```
+
+Eseguilo:
+
+```bash
+ollama run qwen2.5-coder-it-8k
+```
+
+Usalo da Python:
+
+```python
+MODEL = "qwen2.5-coder-it-8k"
+```
+
+Questo è il modo consigliato per fissare parametri come `num_ctx` quando usi Ollama tramite API OpenAI-compatible.
+
+---
+
+### Generare embedding da CLI
+
+Con un modello embedding:
+
+```bash
+ollama pull nomic-embed-text
+ollama run nomic-embed-text "Laravel usa Eloquent ORM"
+```
+
+L'output è un vettore numerico. Per applicazioni reali conviene usare `/api/embed` o `/v1/embeddings` da codice.
+
+---
+
+### Usare un modello multimodale da CLI
+
+Con un modello vision compatibile puoi passare un'immagine nel prompt:
+
+```bash
+ollama run gemma4 "Cosa vedi in questa immagine? /percorso/immagine.png"
+```
+
+Il supporto dipende dal modello installato.
+
+---
+
+### Login e logout Ollama
+
+```bash
+ollama signin
+ollama signout
+```
+
+Servono per funzionalità legate all'account/registry Ollama. Per usare Ollama locale con modelli pubblici già disponibili spesso non ti servono.
+
+---
+
+## E.4 Comandi rapidi di diagnostica
+
+```bash
+# Versione Ollama
+ollama -v
+
+# Modelli installati
+ollama list
+
+# Modelli attivi in memoria
+ollama ps
+
+# API server vivo
+curl http://localhost:11434/api/tags
+
+# API OpenAI-compatible viva
+curl http://localhost:11434/v1/models
+```
+
+Se usi la repo Docker con porta host `7869`, sostituisci:
+
+```text
+http://localhost:11434
+```
+
+con:
+
+```text
+http://localhost:7869
+```
+
+---
+
+## E.5 Tabella riassuntiva CLI
+
+| Comando | Scopo |
+|---|---|
+| `ollama serve` | avvia il server Ollama |
+| `ollama run <model>` | esegue un modello in chat |
+| `ollama pull <model>` | scarica un modello |
+| `ollama list` / `ollama ls` | elenca modelli installati |
+| `ollama ps` | mostra modelli caricati |
+| `ollama stop <model>` | ferma un modello caricato |
+| `ollama show <model>` | mostra dettagli modello |
+| `ollama cp <source> <dest>` | crea alias/copia modello |
+| `ollama rm <model>` | elimina modello locale |
+| `ollama create <name> -f Modelfile` | crea modello personalizzato |
+| `ollama signin` | login account Ollama |
+| `ollama signout` | logout account Ollama |
+
+---
 
 ## License
 
