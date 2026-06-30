@@ -1,7 +1,18 @@
 .dist
 /src/__pycache__
 venv/
-ollama/
+# Ignora tutti i contenuti runtime di Ollama/Open WebUI
+ollama/*
+
+# Ma tieni versionata la configurazione SearXNG
+!ollama/searxng/
+!ollama/searxng/**
+
+# Opzionale: se vuoi evitare file temporanei dentro searxng
+ollama/searxng/*.log
+ollama/searxng/*.tmp
+ollama/searxng/__pycache__/
+
 *.gguf
 *.ggml
 .idea/

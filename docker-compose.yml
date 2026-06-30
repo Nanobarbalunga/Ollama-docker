@@ -34,14 +34,14 @@ services:
       - "${OPEN_WEBUI_PORT:-8080}:8080"
     environment: 
       # https://docs.openwebui.com/reference/env-configuration
-      OLLAMA_BASE_URLS: ${OPEN_WEBUI_OLLAMA_BASE_URLS:-http://host.docker.internal:7869} # semicolon-separated Ollama hosts
+      OLLAMA_BASE_URLS: ${OPEN_WEBUI_OLLAMA_BASE_URLS:-http://ollama:11434} # semicolon-separated Ollama hosts
       ENV: ${OPEN_WEBUI_ENV:-dev}
       WEBUI_AUTH: ${OPEN_WEBUI_AUTH:-False}
       WEBUI_NAME: ${OPEN_WEBUI_NAME:-OpenWebUi}
       WEBUI_URL: ${OPEN_WEBUI_URL:-http://localhost:8080}
       WEBUI_SECRET_KEY: ${OPEN_WEBUI_SECRET_KEY:-t0p-s3cr3t}
       # ENABLE_OLLAMA_API: ${OPEN_WEBUI_ENABLE_OLLAMA_API:-True}
-      # OLLAMA_BASE_URL: ${OPEN_WEBUI_OLLAMA_BASE_URL:-http://host.docker.internal:7869}
+      # OLLAMA_BASE_URL: ${OPEN_WEBUI_OLLAMA_BASE_URL:-http://ollama:11434}
       # DEFAULT_MODELS: ${OPEN_WEBUI_DEFAULT_MODELS:-}
       # ENABLE_OPENAI_API: ${OPEN_WEBUI_ENABLE_OPENAI_API:-True}
       # OPENAI_API_BASE_URL: ${OPEN_WEBUI_OPENAI_API_BASE_URL:-https://api.openai.com/v1}
@@ -51,7 +51,26 @@ services:
     restart: ${OPEN_WEBUI_RESTART_POLICY:-unless-stopped}
     networks:
       - ollama-docker
-
+  searxng:
+    image: ${SEARXNG_IMAGE:-searxng/searxng:latest}
+    container_name: ${SEARXNG_CONTAINER_NAME:-searxng}
+    pull_policy: ${SEARXNG_PULL_POLICY:-always}
+    restart: ${SEARXNG_RESTART_POLICY:-unless-stopped}
+    ports:
+      - "${SEARXNG_PORT:-8181}:8080"
+    volumes:
+      - ${SEARXNG_CONFIG_PATH:-./ollama/searxng}:/etc/searxng:rw
+    environment:
+      SEARXNG_BASE_URL: ${SEARXNG_BASE_URL:-http://localhost:8181/}
+      SEARXNG_SECRET_KEY: ${SEARXNG_SECRET_KEY:-change-me-searxng-secret}
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    networks:
+      - ollama-docker
 networks:
   ollama-docker:
   

@@ -38,27 +38,58 @@ services:
       - ${OPEN_WEBUI_DATA_PATH:-./ollama/ollama-webui}:/app/backend/data
     depends_on:
       - ollama
+      - searxng
     ports:
       - "${OPEN_WEBUI_PORT:-8080}:8080"
     environment:
       # https://docs.openwebui.com/reference/env-configuration
-      OLLAMA_BASE_URLS: ${OPEN_WEBUI_OLLAMA_BASE_URLS:-http://host.docker.internal:7869} # semicolon-separated Ollama hosts
+      OLLAMA_BASE_URLS: ${OPEN_WEBUI_OLLAMA_BASE_URLS:-http://ollama:11434} # semicolon-separated Ollama hosts
       ENV: ${OPEN_WEBUI_ENV:-dev}
       WEBUI_AUTH: ${OPEN_WEBUI_AUTH:-False}
       WEBUI_NAME: ${OPEN_WEBUI_NAME:-OpenWebUi}
       WEBUI_URL: ${OPEN_WEBUI_URL:-http://localhost:8080}
       WEBUI_SECRET_KEY: ${OPEN_WEBUI_SECRET_KEY:-t0p-s3cr3t}
       # ENABLE_OLLAMA_API: ${OPEN_WEBUI_ENABLE_OLLAMA_API:-True}
-      # OLLAMA_BASE_URL: ${OPEN_WEBUI_OLLAMA_BASE_URL:-http://host.docker.internal:7869}
+      # OLLAMA_BASE_URL: ${OPEN_WEBUI_OLLAMA_BASE_URL:-http://ollama:11434}
       # DEFAULT_MODELS: ${OPEN_WEBUI_DEFAULT_MODELS:-}
       # ENABLE_OPENAI_API: ${OPEN_WEBUI_ENABLE_OPENAI_API:-True}
       # OPENAI_API_BASE_URL: ${OPEN_WEBUI_OPENAI_API_BASE_URL:-https://api.openai.com/v1}
       # OPENAI_API_KEY: ${OPEN_WEBUI_OPENAI_API_KEY:-}
+            # Web Search / SearXNG
+      ENABLE_WEB_SEARCH: ${OPEN_WEBUI_ENABLE_WEB_SEARCH:-True}
+      WEB_SEARCH_ENGINE: ${OPEN_WEBUI_WEB_SEARCH_ENGINE:-searxng}
+      SEARXNG_QUERY_URL: ${OPEN_WEBUI_SEARXNG_QUERY_URL:-http://searxng:8080/search?q=<query>&format=json}
+      SEARXNG_LANGUAGE: ${OPEN_WEBUI_SEARXNG_LANGUAGE:-it}
+      WEB_SEARCH_RESULT_COUNT: ${OPEN_WEBUI_WEB_SEARCH_RESULT_COUNT:-3}
+      WEB_SEARCH_CONCURRENT_REQUESTS: ${OPEN_WEBUI_WEB_SEARCH_CONCURRENT_REQUESTS:-1}
+      WEB_LOADER_CONCURRENT_REQUESTS: ${OPEN_WEBUI_WEB_LOADER_CONCURRENT_REQUESTS:-3}
+      WEB_SEARCH_TRUST_ENV: ${OPEN_WEBUI_WEB_SEARCH_TRUST_ENV:-True}
+      BYPASS_WEB_SEARCH_WEB_LOADER: ${OPEN_WEBUI_BYPASS_WEB_SEARCH_WEB_LOADER:-False}
+      BYPASS_WEB_SEARCH_EMBEDDING_AND_RETRIEVAL: ${OPEN_WEBUI_BYPASS_WEB_SEARCH_EMBEDDING_AND_RETRIEVAL:-False}
     extra_hosts:
       - ${OPEN_WEBUI_HOST_GATEWAY:-host.docker.internal:host-gateway}
     restart: ${OPEN_WEBUI_RESTART_POLICY:-unless-stopped}
     networks:
       - ollama-docker
-
+  searxng:
+    image: ${SEARXNG_IMAGE:-searxng/searxng:latest}
+    container_name: ${SEARXNG_CONTAINER_NAME:-searxng}
+    pull_policy: ${SEARXNG_PULL_POLICY:-always}
+    restart: ${SEARXNG_RESTART_POLICY:-unless-stopped}
+    ports:
+      - "${SEARXNG_PORT:-8181}:8080"
+    volumes:
+      - ${SEARXNG_CONFIG_PATH:-./ollama/searxng}:/etc/searxng:rw
+    environment:
+      SEARXNG_BASE_URL: ${SEARXNG_BASE_URL:-http://localhost:8181/}
+      SEARXNG_SECRET_KEY: ${SEARXNG_SECRET_KEY:-change-me-searxng-secret}
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    networks:
+      - ollama-docker
 networks:
   ollama-docker:
