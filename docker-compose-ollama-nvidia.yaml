@@ -93,3 +93,4 @@ services:
 
 networks:
   ollama-docker:
+    name: ollama-docker
