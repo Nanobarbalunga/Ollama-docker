@@ -78,7 +78,7 @@ services:
     ports:
       - "${SEARXNG_PORT:-8181}:8080"
     volumes:
-      - ${SEARXNG_CONFIG_PATH:-./ollama/searxng}:/etc/searxng:rw
+      - ${SEARXNG_CONFIG_PATH:-./ollama/searxng}:/etc/searxng:${SEARXNG_CONFIG_MOUNT_OPTIONS:-rw,Z}
     environment:
       SEARXNG_BASE_URL: ${SEARXNG_BASE_URL:-http://localhost:8181/}
       SEARXNG_SECRET_KEY: ${SEARXNG_SECRET_KEY:-change-me-searxng-secret}
