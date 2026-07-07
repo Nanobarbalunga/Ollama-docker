@@ -18,3 +18,4 @@ ollama/searxng/__pycache__/
 .idea/
 .vscode
 .code-workspace
+.env
