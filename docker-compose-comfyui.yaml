@@ -1,0 +1,23 @@
+services:
+  comfyui:
+    profiles:
+      - images
+    image: ${COMFYUI_CPU_IMAGE:-ghcr.io/ai-dock/comfyui:latest-cpu}
+    container_name: ${COMFYUI_CONTAINER_NAME:-comfyui}
+    pull_policy: ${COMFYUI_PULL_POLICY:-always}
+    restart: ${COMFYUI_RESTART_POLICY:-unless-stopped}
+    ports:
+      - "${COMFYUI_HOST_BIND:-127.0.0.1}:${COMFYUI_PORT:-8188}:8188"
+    volumes:
+      - ${COMFYUI_DATA_PATH:-./comfyui}:/workspace
+    environment:
+      AUTO_UPDATE: ${COMFYUI_AUTO_UPDATE:-false}
+      COMFYUI_ARGS: ${COMFYUI_CPU_ARGS:---listen 0.0.0.0 --cpu}
+      WEB_ENABLE_AUTH: ${COMFYUI_WEB_ENABLE_AUTH:-false}
+      WORKSPACE: /workspace
+    networks:
+      - ollama-docker
+
+networks:
+  ollama-docker:
+    name: ollama-docker

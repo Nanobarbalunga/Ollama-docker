@@ -1,4 +1,14 @@
 services:
+  automatic1111:
+    extends:
+      file: docker-compose-automatic1111.yaml
+      service: automatic1111
+
+  comfyui:
+    extends:
+      file: docker-compose-comfyui.yaml
+      service: comfyui
+
   ollama:
     image: ${OLLAMA_IMAGE:-ollama/ollama:latest}
     ports:
@@ -13,13 +23,15 @@ services:
     environment:
       OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-15m}
       OLLAMA_HOST: ${OLLAMA_HOST:-0.0.0.0}
-      # OLLAMA_MODELS: ${OLLAMA_MODELS:-/root/.ollama/models}
-      # OLLAMA_NUM_PARALLEL: ${OLLAMA_NUM_PARALLEL:-1}
-      # OLLAMA_MAX_LOADED_MODELS: ${OLLAMA_MAX_LOADED_MODELS:-1}
-      # OLLAMA_LOAD_TIMEOUT: ${OLLAMA_LOAD_TIMEOUT:-5m}
-      # OLLAMA_MAX_QUEUE: ${OLLAMA_MAX_QUEUE:-512}
-      # OLLAMA_FLASH_ATTENTION: ${OLLAMA_FLASH_ATTENTION:-0}
-      # OLLAMA_KV_CACHE_TYPE: ${OLLAMA_KV_CACHE_TYPE:-f16}
+      OLLAMA_MODELS: ${OLLAMA_MODELS:-/root/.ollama/models}
+      OLLAMA_NUM_PARALLEL: ${OLLAMA_NUM_PARALLEL:-1}
+      OLLAMA_MAX_LOADED_MODELS: ${OLLAMA_MAX_LOADED_MODELS:-1}
+      OLLAMA_LOAD_TIMEOUT: ${OLLAMA_LOAD_TIMEOUT:-5m}
+      OLLAMA_MAX_QUEUE: ${OLLAMA_MAX_QUEUE:-512}
+      # KV cache types: f16 (default), q8_0 (~50% less memory), q4_0 (~75% less memory).
+      # q8_0/q4_0 require Flash Attention and may reduce model precision.
+      OLLAMA_FLASH_ATTENTION: ${OLLAMA_FLASH_ATTENTION:-0}
+      OLLAMA_KV_CACHE_TYPE: ${OLLAMA_KV_CACHE_TYPE:-f16}
     networks:
       - ollama-docker
 
@@ -56,6 +68,16 @@ services:
       WEB_SEARCH_TRUST_ENV: ${OPEN_WEBUI_WEB_SEARCH_TRUST_ENV:-True}
       BYPASS_WEB_SEARCH_WEB_LOADER: ${OPEN_WEBUI_BYPASS_WEB_SEARCH_WEB_LOADER:-False}
       BYPASS_WEB_SEARCH_EMBEDDING_AND_RETRIEVAL: ${OPEN_WEBUI_BYPASS_WEB_SEARCH_EMBEDDING_AND_RETRIEVAL:-False}
+      # Image generation: profiles "images" (ComfyUI) or "automatic1111".
+      ENABLE_IMAGE_GENERATION: ${OPEN_WEBUI_ENABLE_IMAGE_GENERATION:-False}
+      IMAGE_GENERATION_ENGINE: ${OPEN_WEBUI_IMAGE_GENERATION_ENGINE:-comfyui}
+      COMFYUI_BASE_URL: ${OPEN_WEBUI_COMFYUI_BASE_URL:-http://comfyui:8188}
+      COMFYUI_API_KEY: ${OPEN_WEBUI_COMFYUI_API_KEY:-}
+      AUTOMATIC1111_BASE_URL: ${OPEN_WEBUI_AUTOMATIC1111_BASE_URL:-http://automatic1111:7860}
+      AUTOMATIC1111_API_AUTH: ${OPEN_WEBUI_AUTOMATIC1111_API_AUTH:-}
+      IMAGE_GENERATION_MODEL: ${OPEN_WEBUI_IMAGE_GENERATION_MODEL:-}
+      IMAGE_SIZE: ${OPEN_WEBUI_IMAGE_SIZE:-512x512}
+      IMAGE_STEPS: ${OPEN_WEBUI_IMAGE_STEPS:-20}
     extra_hosts:
       - ${OPEN_WEBUI_HOST_GATEWAY:-host.docker.internal:host-gateway}
     restart: ${OPEN_WEBUI_RESTART_POLICY:-unless-stopped}

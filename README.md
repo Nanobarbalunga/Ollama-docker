@@ -103,6 +103,90 @@ docker compose up -d
 
 Per aprire Ollama-webui [http://localhost:8080](http://localhost:8080) nel tuo browser.
 
+### Generazione immagini: ComfyUI o Automatic1111
+
+Entrambi i backend sono disabilitati di default e possono essere collegati a
+Open WebUI. Scegline uno in base al tipo di utilizzo e alle risorse disponibili.
+
+| Caratteristica | ComfyUI | Automatic1111 |
+| --- | --- | --- |
+| Approccio | Workflow visuale a nodi, molto flessibile | Interfaccia tradizionale a schede e parametri |
+| Facilita' iniziale | Richiede di comprendere o importare un workflow | Generalmente piu' immediato per `txt2img` e `img2img` |
+| Modelli e flussi complessi | Indicato per pipeline avanzate, riutilizzabili e modelli recenti | Indicato per flussi Stable Diffusion classici e il suo ampio ecosistema di estensioni |
+| Uso della memoria | In genere gestisce meglio workflow complessi e sistemi con VRAM limitata | Puo' richiedere flag come `--medvram` o `--lowvram` su GPU piccole |
+| Integrazione Open WebUI | Richiede un workflow API compatibile | Usa direttamente l'API `txt2img`/`img2img`, abilitata qui con `--api` |
+| CPU | Supportata, ma molto lenta | Supportata con flag dedicati, ma non raccomandata |
+
+Per entrambi e' fortemente consigliata una GPU NVIDIA. Come indicazione
+generale, Stable Diffusion 1.5 puo' essere usato con circa 4-6 GB di VRAM,
+mentre SDXL e workflow piu' complessi richiedono normalmente almeno 8-12 GB.
+Il consumo effettivo dipende da modello, risoluzione, batch, precisione,
+ControlNet e altri nodi o estensioni. Con sola CPU servono molta RAM, spazio su
+disco per i modelli e tempi di generazione nettamente superiori.
+
+Scegli **ComfyUI** se vuoi massimo controllo, workflow riproducibili o prevedi
+di usare pipeline avanzate. Scegli **Automatic1111** se preferisci una UI
+classica, una configurazione iniziale piu' semplice e workflow Stable Diffusion
+tradizionali.
+
+#### Abilitare ComfyUI
+
+```dotenv
+COMPOSE_PROFILES=images
+OPEN_WEBUI_ENABLE_IMAGE_GENERATION=True
+OPEN_WEBUI_IMAGE_GENERATION_ENGINE=comfyui
+```
+
+Open WebUI usa `http://comfyui:8188`; la UI locale e' disponibile su
+[http://localhost:8188](http://localhost:8188).
+
+#### Abilitare Automatic1111
+
+```dotenv
+COMPOSE_PROFILES=automatic1111
+OPEN_WEBUI_ENABLE_IMAGE_GENERATION=True
+OPEN_WEBUI_IMAGE_GENERATION_ENGINE=automatic1111
+```
+
+Open WebUI usa `http://automatic1111:7860`; la UI locale e' disponibile su
+[http://localhost:7860](http://localhost:7860). Il flag `--api` e' gia'
+presente nei valori predefiniti.
+
+Dopo avere scelto il backend, avvia normalmente lo stack:
+
+```bash
+# CPU: anche il backend immagini usa la CPU
+docker compose up -d
+
+# NVIDIA: anche il backend immagini usa la GPU NVIDIA
+docker compose -f docker-compose-ollama-nvidia.yaml up -d
+
+# AMD/ROCm: Ollama usa ROCm, il backend immagini usa la CPU
+docker compose -f docker-compose-ollama-amd.yaml up -d
+```
+
+I Compose dedicati possono essere usati anche separatamente:
+
+```bash
+docker compose -f docker-compose-comfyui.yaml --profile images up -d
+docker compose -f docker-compose-comfyui-nvidia.yaml --profile images up -d
+docker compose -f docker-compose-automatic1111.yaml --profile automatic1111 up -d
+docker compose -f docker-compose-automatic1111-nvidia.yaml --profile automatic1111 up -d
+```
+
+Le immagini AI-Dock non includono checkpoint. Al primo avvio aggiungi almeno un
+modello nella directory persistente `./comfyui` oppure `./automatic1111`, poi
+seleziona il modello nelle impostazioni del backend e in **Admin Settings >
+Images** di Open WebUI. ComfyUI puo' richiedere anche un workflow esportato nel
+formato API.
+
+Per disabilitare la generazione immagini:
+
+```dotenv
+COMPOSE_PROFILES=
+OPEN_WEBUI_ENABLE_IMAGE_GENERATION=False
+```
+
 In alternativa puoi usare gli script gia' pronti nella root del progetto. Scegli quelli PowerShell se lavori da Windows/PowerShell, oppure quelli Bash se lavori da WSL2 o Linux.
 
 | Ambiente | CPU | NVIDIA | AMD / ROCm | Stop CPU | Stop NVIDIA | Stop AMD / ROCm |
@@ -188,8 +272,8 @@ docker compose -f docker-compose-ollama-amd.yaml up -d
 | `OLLAMA_MAX_LOADED_MODELS` | `1` | Opzionale | [Descrizione](#ollama_max_loaded_models) |
 | `OLLAMA_LOAD_TIMEOUT` | `5m` | Opzionale | [Descrizione](#ollama_load_timeout) |
 | `OLLAMA_MAX_QUEUE` | `512` | Opzionale | [Descrizione](#ollama_max_queue) |
-| `OLLAMA_FLASH_ATTENTION` | `0` | Opzionale | [Descrizione](#ollama_flash_attention) |
-| `OLLAMA_KV_CACHE_TYPE` | `f16` | Opzionale | [Descrizione](#ollama_kv_cache_type) |
+| `OLLAMA_FLASH_ATTENTION` | `0` | Tutti | [Descrizione](#ollama_flash_attention) |
+| `OLLAMA_KV_CACHE_TYPE` | `f16` | Tutti | [Descrizione](#ollama_kv_cache_type) |
 | `OPEN_WEBUI_OLLAMA_BASE_URLS` | `http://host.docker.internal:7869` | Tutti | [Descrizione](#open_webui_ollama_base_urls) |
 | `OPEN_WEBUI_ENV` | `dev` | Tutti | [Descrizione](#open_webui_env) |
 | `OPEN_WEBUI_AUTH` | `False` | Tutti | [Descrizione](#open_webui_auth) |
@@ -318,11 +402,33 @@ Numero massimo di richieste in coda. Utile per limitare il carico quando piu' cl
 
 #### `OLLAMA_FLASH_ATTENTION`
 
-Abilita o disabilita Flash Attention quando supportata. Puo' migliorare prestazioni e uso memoria, ma va testata con GPU e modello specifici.
+Abilita (`1`) o disabilita (`0`) Flash Attention. Ollama la usa
+automaticamente quando backend e dispositivo la supportano; impostare `1` ne
+forza l'attivazione. La quantizzazione della cache KV con `q8_0` o `q4_0`
+richiede Flash Attention.
 
 #### `OLLAMA_KV_CACHE_TYPE`
 
-Tipo di cache KV usata da Ollama. Valori piu' compressi possono ridurre memoria usata, con possibili trade-off su qualita' o prestazioni.
+Imposta globalmente il tipo di quantizzazione della cache K/V per tutti i
+modelli caricati da Ollama.
+
+| Valore | Memoria indicativa | Precisione | Utilizzo consigliato |
+| --- | --- | --- | --- |
+| `f16` | 100% | Massima | Default; da preferire quando RAM o VRAM sono sufficienti |
+| `q8_0` | Circa 50% di `f16` | Perdita molto piccola, normalmente non percepibile | Miglior compromesso quando si vuole ridurre la memoria |
+| `q4_0` | Circa 25% di `f16` | Perdita piccola o media, piu' evidente con contesti lunghi | Sistemi con memoria molto limitata |
+
+Per usare una cache quantizzata nel file `.env`:
+
+```dotenv
+OLLAMA_FLASH_ATTENTION=1
+OLLAMA_KV_CACHE_TYPE=q8_0
+```
+
+L'impatto sulla qualita' dipende dal modello e dal task. I modelli con un alto
+numero di gruppi GQA, per esempio Qwen2, possono perdere piu' precisione con la
+quantizzazione. Dopo una modifica e' necessario ricreare o riavviare il
+container Ollama.
 
 #### `OPEN_WEBUI_OLLAMA_BASE_URLS`
 

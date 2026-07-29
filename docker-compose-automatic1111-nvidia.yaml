@@ -1,0 +1,32 @@
+services:
+  automatic1111:
+    profiles:
+      - automatic1111
+    image: ${AUTOMATIC1111_NVIDIA_IMAGE:-ghcr.io/ai-dock/stable-diffusion-webui:latest-cuda}
+    container_name: ${AUTOMATIC1111_CONTAINER_NAME:-automatic1111}
+    pull_policy: ${AUTOMATIC1111_PULL_POLICY:-always}
+    restart: ${AUTOMATIC1111_RESTART_POLICY:-unless-stopped}
+    ports:
+      - "${AUTOMATIC1111_HOST_BIND:-127.0.0.1}:${AUTOMATIC1111_PORT:-7860}:7860"
+    volumes:
+      - ${AUTOMATIC1111_DATA_PATH:-./automatic1111}:/workspace
+    environment:
+      AUTO_UPDATE: ${AUTOMATIC1111_AUTO_UPDATE:-false}
+      NVIDIA_DRIVER_CAPABILITIES: ${AUTOMATIC1111_NVIDIA_DRIVER_CAPABILITIES:-compute,utility}
+      NVIDIA_VISIBLE_DEVICES: ${AUTOMATIC1111_NVIDIA_VISIBLE_DEVICES:-all}
+      WEBUI_ARGS: ${AUTOMATIC1111_NVIDIA_ARGS:---listen --api}
+      WEB_ENABLE_AUTH: ${AUTOMATIC1111_WEB_ENABLE_AUTH:-false}
+      WORKSPACE: /workspace
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: ${AUTOMATIC1111_NVIDIA_GPU_COUNT:-1}
+              capabilities: [gpu]
+    networks:
+      - ollama-docker
+
+networks:
+  ollama-docker:
+    name: ollama-docker
