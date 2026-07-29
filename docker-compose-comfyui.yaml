@@ -14,6 +14,9 @@ services:
       AUTO_UPDATE: ${COMFYUI_AUTO_UPDATE:-false}
       COMFYUI_ARGS: ${COMFYUI_CPU_ARGS:---listen 0.0.0.0 --cpu}
       WEB_ENABLE_AUTH: ${COMFYUI_WEB_ENABLE_AUTH:-false}
+      WEB_USER: ${COMFYUI_WEB_USER:-user}
+      WEB_PASSWORD: ${COMFYUI_WEB_PASSWORD:-password}
+      WEB_PASSWORD_HASH: ${COMFYUI_WEB_PASSWORD_HASH:-}
       WORKSPACE: /workspace
     networks:
       - ollama-docker

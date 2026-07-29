@@ -139,6 +139,8 @@ OPEN_WEBUI_IMAGE_GENERATION_ENGINE=comfyui
 
 Open WebUI usa `http://comfyui:8188`; la UI locale e' disponibile su
 [http://localhost:8188](http://localhost:8188).
+Per proteggere l'interfaccia consulta
+[Appendice B - Autenticazione web dei backend immagini](#appendice-b-autenticazione-backend-immagini).
 
 #### Abilitare Automatic1111
 
@@ -150,7 +152,32 @@ OPEN_WEBUI_IMAGE_GENERATION_ENGINE=automatic1111
 
 Open WebUI usa `http://automatic1111:7860`; la UI locale e' disponibile su
 [http://localhost:7860](http://localhost:7860). Il flag `--api` e' gia'
-presente nei valori predefiniti.
+presente nei valori predefiniti. Automatic1111 viene avviato esplicitamente
+con:
+
+```text
+--listen --api --port 7860
+```
+
+Il bind predefinito `AUTOMATIC1111_HOST_BIND=0.0.0.0` rende l'interfaccia
+raggiungibile anche dagli altri dispositivi della LAN:
+
+```text
+http://IP-DEL-SERVER:7860
+```
+
+Se il server ha un indirizzo LAN statico, puoi limitare l'ascolto a
+quell'indirizzo:
+
+```dotenv
+AUTOMATIC1111_HOST_BIND=192.168.1.50
+```
+
+Poiche' `AUTOMATIC1111_WEB_ENABLE_AUTH=false` per default, non pubblicare la
+porta `7860` direttamente su Internet. Limita l'accesso tramite firewall alla
+rete locale oppure abilita un sistema di autenticazione.
+La configurazione completa e' descritta in
+[Appendice B - Autenticazione web dei backend immagini](#appendice-b-autenticazione-backend-immagini).
 
 Dopo avere scelto il backend, avvia normalmente lo stack:
 
@@ -286,6 +313,14 @@ docker compose -f docker-compose-ollama-amd.yaml up -d
 | `OPEN_WEBUI_ENABLE_OPENAI_API` | `True` | Opzionale | [Descrizione](#open_webui_enable_openai_api) |
 | `OPEN_WEBUI_OPENAI_API_BASE_URL` | `https://api.openai.com/v1` | Opzionale | [Descrizione](#open_webui_openai_api_base_url) |
 | `OPEN_WEBUI_OPENAI_API_KEY` | vuoto | Opzionale | [Descrizione](#open_webui_openai_api_key) |
+| `AUTOMATIC1111_WEB_ENABLE_AUTH` | `false` | Automatic1111 | [Descrizione](#automatic1111_web_enable_auth) |
+| `AUTOMATIC1111_WEB_USER` | `user` | Automatic1111 | [Descrizione](#automatic1111_web_user) |
+| `AUTOMATIC1111_WEB_PASSWORD` | `password` | Automatic1111 | [Descrizione](#automatic1111_web_password) |
+| `AUTOMATIC1111_WEB_PASSWORD_HASH` | vuoto | Automatic1111 | [Descrizione](#automatic1111_web_password_hash) |
+| `COMFYUI_WEB_ENABLE_AUTH` | `false` | ComfyUI | [Descrizione](#comfyui_web_enable_auth) |
+| `COMFYUI_WEB_USER` | `user` | ComfyUI | [Descrizione](#comfyui_web_user) |
+| `COMFYUI_WEB_PASSWORD` | `password` | ComfyUI | [Descrizione](#comfyui_web_password) |
+| `COMFYUI_WEB_PASSWORD_HASH` | vuoto | ComfyUI | [Descrizione](#comfyui_web_password_hash) |
 | `NVIDIA_VISIBLE_DEVICES` | `all` | NVIDIA | [Descrizione](#nvidia_visible_devices) |
 | `NVIDIA_DRIVER_CAPABILITIES` | `compute,utility` | NVIDIA | [Descrizione](#nvidia_driver_capabilities) |
 | `NVIDIA_GPU_COUNT` | `1` | NVIDIA | [Descrizione](#nvidia_gpu_count) |
@@ -477,6 +512,56 @@ Base URL per API OpenAI-compatible. Cambiala per usare proxy, gateway locali o p
 #### `OPEN_WEBUI_OPENAI_API_KEY`
 
 Chiave API per OpenAI o provider compatibili. Non committare mai un `.env` reale contenente questa chiave.
+
+#### `AUTOMATIC1111_WEB_ENABLE_AUTH`
+
+Abilita (`true`) o disabilita (`false`) l'autenticazione HTTP Basic fornita da
+AI-Dock davanti all'interfaccia Automatic1111. Il default e' `false`; abilitala
+quando la porta `7860` e' accessibile da una rete condivisa. Vedi
+[Appendice B.1](#b1-automatic1111).
+
+#### `AUTOMATIC1111_WEB_USER`
+
+Nome utente richiesto per accedere all'interfaccia web Automatic1111 quando
+l'autenticazione e' attiva. Il valore predefinito `user` deve essere sostituito
+prima di esporre il servizio.
+
+#### `AUTOMATIC1111_WEB_PASSWORD`
+
+Password in chiaro per l'autenticazione web Automatic1111. Il default
+`password` non e' sicuro: inserisci la password reale esclusivamente nel file
+`.env` e non versionarla.
+
+#### `AUTOMATIC1111_WEB_PASSWORD_HASH`
+
+Hash bcrypt alternativo alla password in chiaro. Quando lo utilizzi, lascia
+`AUTOMATIC1111_WEB_PASSWORD` vuota e racchiudi l'hash tra apici singoli nel
+file `.env`, affinche' Docker Compose non interpreti i caratteri `$`.
+
+#### `COMFYUI_WEB_ENABLE_AUTH`
+
+Abilita (`true`) o disabilita (`false`) l'autenticazione HTTP Basic AI-Dock
+per ComfyUI. Puo' impedire a Open WebUI di raggiungere direttamente l'API:
+per questa integrazione e' normalmente preferibile lasciarla disabilitata e
+limitare l'esposizione della porta. Vedi [Appendice B.2](#b2-comfyui).
+
+#### `COMFYUI_WEB_USER`
+
+Nome utente richiesto per accedere all'interfaccia web ComfyUI quando
+l'autenticazione e' abilitata. Sostituisci il valore predefinito `user` negli
+ambienti condivisi.
+
+#### `COMFYUI_WEB_PASSWORD`
+
+Password in chiaro usata dall'autenticazione web ComfyUI. Non usare il default
+`password` in una rete condivisa e conserva il valore reale solamente nel file
+`.env`.
+
+#### `COMFYUI_WEB_PASSWORD_HASH`
+
+Hash bcrypt utilizzabile al posto di `COMFYUI_WEB_PASSWORD`. Lascia vuota la
+password in chiaro e racchiudi l'hash tra apici singoli nel `.env` per
+preservare letteralmente i caratteri `$`.
 
 #### `NVIDIA_VISIBLE_DEVICES`
 
@@ -903,6 +988,104 @@ http://localhost:7869
 | `ollama signout` | logout account Ollama |
 
 ---
+
+<a id="appendice-b-autenticazione-backend-immagini"></a>
+
+## Appendice B - Configurazione autenticazione web
+
+Le immagini AI-Dock possono proteggere le interfacce di Automatic1111 e
+ComfyUI con autenticazione HTTP Basic. Nel progetto l'autenticazione e'
+opzionale e disabilitata per default, per non interrompere il collegamento con
+Open WebUI.
+
+Non usare in produzione le credenziali predefinite `user` / `password`.
+Inserisci le credenziali reali esclusivamente nel file `.env`, che non deve
+essere versionato.
+
+### B.1 Automatic1111
+
+Per abilitare l'autenticazione dell'interfaccia web:
+
+```dotenv
+AUTOMATIC1111_WEB_ENABLE_AUTH=true
+AUTOMATIC1111_WEB_USER=admin
+AUTOMATIC1111_WEB_PASSWORD=sostituisci-con-una-password-lunga
+AUTOMATIC1111_WEB_PASSWORD_HASH=
+```
+
+`AUTOMATIC1111_WEB_PASSWORD` contiene la password in chiaro. In alternativa,
+AI-Dock accetta un hash bcrypt tramite `AUTOMATIC1111_WEB_PASSWORD_HASH`; in
+quel caso lascia vuota la password in chiaro:
+
+```dotenv
+AUTOMATIC1111_WEB_ENABLE_AUTH=true
+AUTOMATIC1111_WEB_USER=admin
+AUTOMATIC1111_WEB_PASSWORD=
+AUTOMATIC1111_WEB_PASSWORD_HASH='$2y$10$sostituisci-con-un-hash-bcrypt'
+```
+
+L'autenticazione web AI-Dock e l'autenticazione dell'API Automatic1111 sono
+distinte. Se vuoi proteggere anche l'API usata da Open WebUI, aggiungi
+`--api-auth utente:password` agli argomenti e configura le stesse credenziali
+in Open WebUI:
+
+```dotenv
+AUTOMATIC1111_NVIDIA_ARGS=--listen --api --port 7860 --api-auth openwebui:password-api
+OPEN_WEBUI_AUTOMATIC1111_API_AUTH=openwebui:password-api
+```
+
+Per CPU conserva anche i flag dedicati:
+
+```dotenv
+AUTOMATIC1111_CPU_ARGS=--listen --api --port 7860 --api-auth openwebui:password-api --use-cpu all --precision full --no-half --skip-torch-cuda-test
+```
+
+### B.2 ComfyUI
+
+Per proteggere l'interfaccia ComfyUI:
+
+```dotenv
+COMFYUI_WEB_ENABLE_AUTH=true
+COMFYUI_WEB_USER=admin
+COMFYUI_WEB_PASSWORD=sostituisci-con-una-password-lunga
+COMFYUI_WEB_PASSWORD_HASH=
+```
+
+E' possibile usare un hash bcrypt nello stesso modo:
+
+```dotenv
+COMFYUI_WEB_ENABLE_AUTH=true
+COMFYUI_WEB_USER=admin
+COMFYUI_WEB_PASSWORD=
+COMFYUI_WEB_PASSWORD_HASH='$2y$10$sostituisci-con-un-hash-bcrypt'
+```
+
+Attenzione: l'autenticazione HTTP Basic di AI-Dock puo' impedire a Open WebUI
+di raggiungere direttamente l'API ComfyUI. Se usi ComfyUI esclusivamente come
+backend di Open WebUI, mantieni `COMFYUI_WEB_ENABLE_AUTH=false` e limita
+l'esposizione della porta con `COMFYUI_HOST_BIND=127.0.0.1` oppure tramite
+firewall. Abilita l'autenticazione web quando devi esporre direttamente
+l'interfaccia, verificando successivamente la connessione da Open WebUI.
+
+### B.3 Applicare le modifiche
+
+Dopo aver cambiato le credenziali, ricrea il backend selezionato:
+
+```bash
+# Automatic1111 CPU
+docker compose --profile automatic1111 up -d --force-recreate automatic1111
+
+# Automatic1111 NVIDIA
+docker compose -f docker-compose-ollama-nvidia.yaml \
+  --profile automatic1111 up -d --force-recreate automatic1111
+
+# ComfyUI CPU
+docker compose --profile images up -d --force-recreate comfyui
+
+# ComfyUI NVIDIA
+docker compose -f docker-compose-ollama-nvidia.yaml \
+  --profile images up -d --force-recreate comfyui
+```
 
 ## License
 
