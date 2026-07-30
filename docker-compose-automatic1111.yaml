@@ -12,7 +12,7 @@ services:
       - ${AUTOMATIC1111_DATA_PATH:-./automatic1111}:/workspace
     environment:
       AUTO_UPDATE: ${AUTOMATIC1111_AUTO_UPDATE:-false}
-      WEBUI_ARGS: ${AUTOMATIC1111_CPU_ARGS:---listen --api --port 7860 --use-cpu all --precision full --no-half --skip-torch-cuda-test}
+      WEBUI_ARGS: ${AUTOMATIC1111_CPU_ARGS:---listen --api --port 7860 --use-cpu all --precision full --no-half --skip-torch-cuda-test --enable-insecure-extension-access}
       WEB_ENABLE_AUTH: ${AUTOMATIC1111_WEB_ENABLE_AUTH:-false}
       WEB_USER: ${AUTOMATIC1111_WEB_USER:-user}
       WEB_PASSWORD: ${AUTOMATIC1111_WEB_PASSWORD:-password}
