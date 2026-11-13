@@ -1090,3 +1090,11 @@ docker compose -f docker-compose-ollama-nvidia.yaml \
 ## License
 
 [GPL 2.0](LICENSE).
+
+## HTTPS / SSL con gateway esterno
+
+È possibile abilitare HTTPS usando [docker-ssl-gataway](https://github.com/Nanobarbalunga/docker-ssl-gataway), un gateway Docker Compose separato con Caddy, Certbot e rinnovo automatico tramite timer systemd utente.
+
+La guida include gli override `docker-compose.ssl.override.yaml` per Nextcloud e OpenWebUI, la configurazione del reverse proxy e il mantenimento delle porte pubbliche esistenti. La validazione HTTP-01 richiede un inoltro permanente della porta pubblica TCP 80 verso il responder ACME del Docker host.
+
+La repository del gateway è privata: il collegamento richiede un account autorizzato.
