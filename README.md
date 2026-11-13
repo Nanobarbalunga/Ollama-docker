@@ -1091,6 +1091,27 @@ docker compose -f docker-compose-ollama-nvidia.yaml \
 
 [GPL 2.0](LICENSE).
 
+
+## Backup OpenWebUI prima degli aggiornamenti
+
+Lo script [script/openwebui-backup.py](script/openwebui-backup.py) salva l'intera directory dati locale di OpenWebUI: SQLite, chat, utenti, upload e dati vettoriali locali. Verifica spazio e preallocazione prima di fermare **solo** `ollama-webui`, con avanzamento, timestamp e compressione ZIP/7z tramite preset `fast`, `balanced` e `max`.
+
+Dalla root del progetto, con Compose NVIDIA e override SSL:
+
+```bash
+mkdir -p "/mnt/backup/openwebui"
+python3 script/openwebui-backup.py "/mnt/backup/openwebui" -e
+python3 script/openwebui-backup.py "/mnt/backup/openwebui" -t -a zip -p balanced
+```
+
+Guida:
+
+```bash
+python3 script/openwebui-backup.py -h
+```
+
+Consulta [la documentazione completa](docs/openwebui-backup.md) per CPU/AMD, uso senza SSL, parametri, spazio disco, verifica e recupero. La copia originale viene conservata anche dopo la compressione. I modelli Ollama e i dati degli altri servizi **non sono inclusi**; PostgreSQL e storage remoti richiedono un backup dedicato. Il backup contiene dati riservati e non è cifrato.
+
 ## HTTPS / SSL con gateway esterno
 
 È possibile abilitare HTTPS usando [docker-ssl-gateway](https://github.com/Nanobarbalunga/docker-ssl-gateway), un gateway Docker Compose separato con Caddy, Certbot e rinnovo automatico tramite timer systemd utente.
